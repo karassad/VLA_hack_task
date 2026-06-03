@@ -34,13 +34,13 @@ pip install gdown
 if [ ! -d "asset" ]; then
     if [ -n "${ASSET_GDRIVE_URL:-}" ]; then
         echo "Downloading assets from Google Drive URL..."
-        python -m gdown --fuzzy "${ASSET_GDRIVE_URL}" -O "${ASSET_ARCHIVE}"
+        python -m gdown "${ASSET_GDRIVE_URL}" -O "${ASSET_ARCHIVE}"
     elif [ -n "${ASSET_GDRIVE_ID:-}" ]; then
         echo "Downloading assets from Google Drive file ID..."
         python -m gdown --id "${ASSET_GDRIVE_ID}" -O "${ASSET_ARCHIVE}"
     else
         echo "Downloading assets from default Google Drive URL..."
-        python -m gdown --fuzzy "${DEFAULT_ASSET_GDRIVE_URL}" -O "${ASSET_ARCHIVE}"
+        python -m gdown "${DEFAULT_ASSET_GDRIVE_URL}" -O "${ASSET_ARCHIVE}"
     fi
 
     echo "Unzipping assets..."

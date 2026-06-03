@@ -15,7 +15,7 @@ class CollectDataConfig:
     # Локальная папка, куда будет сохранён датасет.
     root: Path = Path("./simulation_data_fixed")
     # True: управление с leader-arm, False: управление с клавиатуры.
-    use_master_arm: bool = True
+    use_master_arm: bool = False
     # Серийный порт leader-arm.
     leader_port: str = "/dev/ttyACM0"
     # Идентификатор leader-arm для master_arm_control.

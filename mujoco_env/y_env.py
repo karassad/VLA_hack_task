@@ -11,15 +11,18 @@ from mujoco_env.utils import sample_xyzs, rotation_matrix, add_title_to_img
 from mujoco_env.ik import solve_ik
 from mujoco_env.transforms import quat2r, r2quat, rpy2r, r2rpy
 
+from collect_data.joystick_.joystick_controller import JoystickController
+
 
 class SimpleEnv:
     def __init__(
-        self,
-        xml_path,
-        action_type="eef_pose",
-        state_type="joint_angle",
-        seed=None,
-        visible_window=True,
+            self,
+            xml_path,
+            action_type="eef_pose",
+            state_type="joint_angle",
+            seed=None,
+            visible_window=True,
+
     ):
         """
         Args:
@@ -43,6 +46,7 @@ class SimpleEnv:
         self.env = MuJoCoParserClass(name="Tabletop", rel_xml_path=xml_path)
         self.action_type = action_type
         self.state_type = state_type
+        self.joy = JoystickController()
 
         # SO-101 arm joints used for IK/control
         self.arm_joint_names = [
@@ -156,11 +160,11 @@ class SimpleEnv:
         # 2) arm слегка приподнята
         # 3) wrist_roll = 0 -> клешня смотрит в ту же сторону, что и base
         q_zero = np.deg2rad([
-            0.0,    # shoulder_pan
+            0.0,  # shoulder_pan
             -30.0,  # shoulder_lift
-            75.0,   # elbow_flex
+            75.0,  # elbow_flex
             -45.0,  # wrist_flex
-            0.0,    # wrist_roll
+            0.0,  # wrist_roll
         ]).astype(np.float32)
 
         gripper_init = np.array([0.0], dtype=np.float32)
@@ -240,23 +244,23 @@ class SimpleEnv:
 
         # Joint limits for SO-101 arm
         q_min = np.array([
-            -1.91986,   # shoulder_pan
-            -1.74533,   # shoulder_lift
-            -1.69,      # elbow_flex
-            -1.65806,   # wrist_flex
-            -2.74385,   # wrist_roll
+            -1.91986,  # shoulder_pan
+            -1.74533,  # shoulder_lift
+            -1.69,  # elbow_flex
+            -1.65806,  # wrist_flex
+            -2.74385,  # wrist_roll
         ], dtype=np.float32)
 
         q_max = np.array([
-             1.91986,
-             1.74533,
-             1.69,
-             1.65806,
-             2.84121,
+            1.91986,
+            1.74533,
+            1.69,
+            1.65806,
+            2.84121,
         ], dtype=np.float32)
 
         gripper_min = -0.17453
-        gripper_max =  1.74533
+        gripper_max = 1.74533
 
         if self.action_type == "eef_pose":
             if action.shape[0] != 7:
@@ -381,6 +385,15 @@ class SimpleEnv:
             SPACE -> gripper open/close
             Z -> reset
         """
+        if self.env.is_key_pressed_once(key=glfw.KEY_Z):
+            return np.zeros(6, dtype=np.float32), True
+
+        action = self.joy.get_action()
+        return np.array(action, dtype=np.float32), False
+
+
+
+
 
         def pressed(key):
             return (
@@ -481,6 +494,7 @@ class SimpleEnv:
         )
         return action, False
 
+
     def get_delta_q(self):
         """
         Get delta joint angles:
@@ -490,6 +504,7 @@ class SimpleEnv:
         self.last_q = copy.deepcopy(self.compute_q)
         gripper_cmd = self._gripper_cmd_value()
         return np.concatenate([delta, [gripper_cmd]], dtype=np.float32)
+
 
     def check_success(self):
         """
@@ -510,11 +525,12 @@ class SimpleEnv:
         hand_is_raised = p_gripper[2] > (p_cube_top[2] + 0.08)
 
         return (
-            cube_is_above_plate_xy
-            and cube_is_on_plate_height
-            and gripper_is_open
-            and hand_is_raised
+                cube_is_above_plate_xy
+                and cube_is_on_plate_height
+                and gripper_is_open
+                and hand_is_raised
         )
+
 
     def get_obj_pose(self):
         """
@@ -526,6 +542,7 @@ class SimpleEnv:
         cube_pose = np.concatenate([p_cube, r2quat(R_cube)], dtype=np.float32)
         plate_pose = np.concatenate([p_plate, r2quat(R_plate)], dtype=np.float32)
         return cube_pose, plate_pose
+
 
     def set_obj_pose(self, cube_pose, plate_pose):
         """
@@ -547,6 +564,7 @@ class SimpleEnv:
             self.env.set_R_base_body(body_name="body_obj_plate_11", R=np.eye(3, 3))
 
         self.step_env()
+
 
     def get_ee_pose(self):
         """

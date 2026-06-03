@@ -91,7 +91,7 @@ def create_or_load_dataset(config: CollectDataConfig) -> LeRobotDataset:
             image_writer_threads=config.image_writer_threads,
             image_writer_processes=config.image_writer_processes,
             batch_encoding_size=config.batch_encoding_size,
-            vcodec=config.vcodec,
+            # vcodec=config.vcodec,
             metadata_buffer_size=config.metadata_buffer_size,
             streaming_encoding=config.streaming_encoding,
             encoder_threads=config.encoder_threads,
