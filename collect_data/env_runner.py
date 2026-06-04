@@ -50,89 +50,132 @@ def create_env(config: CollectDataConfig) -> SimpleEnv:
 
 
 def create_or_load_dataset(config: CollectDataConfig) -> LeRobotDataset:
-    create_new = True
-    if config.root.exists():
-        print(f"Папка {config.root} уже существует.")
-        ans = input("Удалить её и создать датасет заново? (y/n) ")
-        if ans == "y":
-            shutil.rmtree(config.root)
-        else:
-            create_new = False
+    # create_new = True
+    # if config.root.exists():
+    #     print(f"Папка {config.root} уже существует.")
+    #     ans = input("Удалить её и создать датасет заново? (y/n) ")
+    #     if ans == "y":
+    #         shutil.rmtree(config.root)
+    #     else:
+    #         create_new = False
 
-    if create_new:
-        return LeRobotDataset.create(
-            repo_id=config.repo_name,
+
+    # if create_new:
+    #     return LeRobotDataset.create(
+    #         repo_id=config.repo_name,
+    #         root=str(config.root),
+    #         robot_type="so_follower",
+    #         fps=config.fps,
+    #         features={
+    #             "observation.images.front": {
+    #                 "dtype": "video",
+    #                 "shape": (480, 640, 3),
+    #                 "names": ["height", "width", "channels"],
+    #             },
+    #             "observation.images.side": {
+    #                 "dtype": "video",
+    #                 "shape": (480, 640, 3),
+    #                 "names": ["height", "width", "channels"],
+    #             },
+    #             "observation.state": {
+    #                 "dtype": "float32",
+    #                 "shape": (6,),
+    #                 "names": JOINT_NAMES,
+    #             },
+    #             "action": {
+    #                 "dtype": "float32",
+    #                 "shape": (6,),
+    #                 "names": JOINT_NAMES,
+    #             },
+    #         },
+    #         use_videos=True,
+    #         image_writer_threads=config.image_writer_threads,
+    #         image_writer_processes=config.image_writer_processes,
+    #         batch_encoding_size=config.batch_encoding_size,
+    #         # vcodec=config.vcodec,
+    #         metadata_buffer_size=config.metadata_buffer_size,
+    #         streaming_encoding=config.streaming_encoding,
+    #         encoder_threads=config.encoder_threads,
+    #     )
+
+    if config.root.exists():
+        print("Загружаю существующий датасет")
+        info_path = config.root / "meta" / "info.json"
+        if not info_path.exists():
+            raise FileNotFoundError(f"Не найден metadata-файл датасета: {info_path}")
+
+        info = json.loads(info_path.read_text())
+        existing_keys = set(info.get("features", {}))
+        state_feature = info.get("features", {}).get("observation.state", {})
+        action_feature = info.get("features", {}).get("action", {})
+        state_names = list(state_feature.get("names") or [])
+        action_names = list(action_feature.get("names") or [])
+        state_shape = tuple(int(x) for x in (state_feature.get("shape") or ()))
+        action_shape = tuple(int(x) for x in (action_feature.get("shape") or ()))
+
+        if info.get("robot_type") != "so_follower" or not REQUIRED_FEATURE_KEYS.issubset(existing_keys):
+            raise ValueError(
+                "Существующий датасет записан в старом формате и несовместим с новой схемой записи. "
+                "Удалите папку и создайте датасет заново, либо продолжайте писать в новый root."
+            )
+        if state_shape != (6,) or action_shape != (6,) or state_names != JOINT_NAMES or action_names != JOINT_NAMES:
+            raise ValueError(
+                "Существующий датасет не соответствует canonical lerobot-record контракту "
+                "для SO follower (state/action должны быть joint .pos, shape=(6,)). "
+                "Используйте новый root для записи."
+            )
+
+        print(f"Папка {config.root} существует. Пытаюсь загрузить...")
+        return LeRobotDataset.resume(
+            config.repo_name,
             root=str(config.root),
-            robot_type="so_follower",
-            fps=config.fps,
-            features={
-                "observation.images.front": {
-                    "dtype": "video",
-                    "shape": (480, 640, 3),
-                    "names": ["height", "width", "channels"],
-                },
-                "observation.images.side": {
-                    "dtype": "video",
-                    "shape": (480, 640, 3),
-                    "names": ["height", "width", "channels"],
-                },
-                "observation.state": {
-                    "dtype": "float32",
-                    "shape": (6,),
-                    "names": JOINT_NAMES,
-                },
-                "action": {
-                    "dtype": "float32",
-                    "shape": (6,),
-                    "names": JOINT_NAMES,
-                },
-            },
-            use_videos=True,
             image_writer_threads=config.image_writer_threads,
             image_writer_processes=config.image_writer_processes,
             batch_encoding_size=config.batch_encoding_size,
             # vcodec=config.vcodec,
-            metadata_buffer_size=config.metadata_buffer_size,
             streaming_encoding=config.streaming_encoding,
             encoder_threads=config.encoder_threads,
         )
 
-    print("Загружаю существующий датасет")
-    info_path = config.root / "meta" / "info.json"
-    if not info_path.exists():
-        raise FileNotFoundError(f"Не найден metadata-файл датасета: {info_path}")
+    print("Создаю новый датасет с нуля.")
+    return LeRobotDataset.create(
+                repo_id=config.repo_name,
+                root=str(config.root),
+                robot_type="so_follower",
+                fps=config.fps,
+                features={
+                    "observation.images.front": {
+                        "dtype": "video",
+                        "shape": (480, 640, 3),
+                        "names": ["height", "width", "channels"],
+                    },
+                    "observation.images.side": {
+                        "dtype": "video",
+                        "shape": (480, 640, 3),
+                        "names": ["height", "width", "channels"],
+                    },
+                    "observation.state": {
+                        "dtype": "float32",
+                        "shape": (6,),
+                        "names": JOINT_NAMES,
+                    },
+                    "action": {
+                        "dtype": "float32",
+                        "shape": (6,),
+                        "names": JOINT_NAMES,
+                    },
+                },
+                use_videos=True,
+                image_writer_threads=config.image_writer_threads,
+                image_writer_processes=config.image_writer_processes,
+                batch_encoding_size=config.batch_encoding_size,
+                # vcodec=config.vcodec,
+                metadata_buffer_size=config.metadata_buffer_size,
+                streaming_encoding=config.streaming_encoding,
+                encoder_threads=config.encoder_threads,
+            )
 
-    info = json.loads(info_path.read_text())
-    existing_keys = set(info.get("features", {}))
-    state_feature = info.get("features", {}).get("observation.state", {})
-    action_feature = info.get("features", {}).get("action", {})
-    state_names = list(state_feature.get("names") or [])
-    action_names = list(action_feature.get("names") or [])
-    state_shape = tuple(int(x) for x in (state_feature.get("shape") or ()))
-    action_shape = tuple(int(x) for x in (action_feature.get("shape") or ()))
 
-    if info.get("robot_type") != "so_follower" or not REQUIRED_FEATURE_KEYS.issubset(existing_keys):
-        raise ValueError(
-            "Существующий датасет записан в старом формате и несовместим с новой схемой записи. "
-            "Удалите папку и создайте датасет заново, либо продолжайте писать в новый root."
-        )
-    if state_shape != (6,) or action_shape != (6,) or state_names != JOINT_NAMES or action_names != JOINT_NAMES:
-        raise ValueError(
-            "Существующий датасет не соответствует canonical lerobot-record контракту "
-            "для SO follower (state/action должны быть joint .pos, shape=(6,)). "
-            "Используйте новый root для записи."
-        )
-
-    return LeRobotDataset.resume(
-        config.repo_name,
-        root=str(config.root),
-        image_writer_threads=config.image_writer_threads,
-        image_writer_processes=config.image_writer_processes,
-        batch_encoding_size=config.batch_encoding_size,
-        vcodec=config.vcodec,
-        streaming_encoding=config.streaming_encoding,
-        encoder_threads=config.encoder_threads,
-    )
 
 
 def collect_demonstrations(config: CollectDataConfig, env: SimpleEnv, dataset: LeRobotDataset, controller) -> None:

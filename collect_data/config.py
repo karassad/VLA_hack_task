@@ -11,7 +11,7 @@ class CollectDataConfig:
     # Имя датасета в терминах LeRobot.
     repo_name: str = "so101_pnp"
     # Сколько эпизодов нужно записать за сессию.
-    num_demo: int = 20
+    num_demo: int = 10
     # Локальная папка, куда будет сохранён датасет.
     root: Path = Path("./simulation_data_fixed")
     # True: управление с leader-arm, False: управление с клавиатуры.
