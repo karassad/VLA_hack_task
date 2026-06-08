@@ -9,7 +9,7 @@ DEFAULT_ASSET_GDRIVE_URL="https://drive.google.com/file/d/1YuvTRgxeehHA2cwGlMWSY
 # Install Python 3.12 and tkinter if needed
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     echo "Installing Python dependencies..."
-    sudo apt update
+    # sudo apt update
     sudo apt install -y python3 python3-venv python3-tk unzip build-essential python3.12-dev
     sudo usermod -aG dialout $USER
 elif [[ "$OSTYPE" == "darwin"* ]]; then

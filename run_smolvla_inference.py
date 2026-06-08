@@ -189,6 +189,7 @@ def resolve_artifacts(args) -> InferenceArtifacts:
 
 def load_policy(model_path: Path, dataset_root: Path, dataset_repo_id: str, device: torch.device):
     ds_meta = LeRobotDatasetMetadata(dataset_repo_id, root=str(dataset_root))
+    print("[test] model path {}".format(model_path))
     cfg = SmolVLAConfig.from_pretrained(str(model_path))
     cfg.device = device.type
     if model_path.is_dir() and cfg.load_vlm_weights:
@@ -484,6 +485,9 @@ def run_episode(
 
 
 def main():
+    import lerobot.policies.pretrained as p
+    print(f'[test] {p.__file__}')
+
     args = parse_args()
     device = get_device(args.device)
     collect_cfg = default_config()
@@ -511,12 +515,14 @@ def main():
         f"max_gripper_step={args.max_gripper_step}",
     )
 
+
     policy, model_cfg, preprocessor, postprocessor = load_policy(
         artifacts.policy_path,
         artifacts.dataset_root,
         artifacts.dataset_repo_id,
         device,
     )
+    print(f'[test] run vla')
     visual_specs = validate_feature_contract(model_cfg)
     numeric_contract = infer_numeric_contract(artifacts.dataset_root)
     print(
