@@ -3,8 +3,9 @@ from evdev import InputDevice, ecodes
 
 
 class JoystickController:
-    def __init__(self, device_path='/dev/input/event3'
-                                   ''):
+    def __init__(self, 
+                 device_path='/dev/input/by-id/usb-Logitech_Logitech_Dual_Action-event-joystick'
+                                   ):
         self.device = InputDevice(device_path)
         self.axes = {0: 128, 1: 128, 2: 128, 5: 128}
         self.gripper_state = False

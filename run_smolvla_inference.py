@@ -94,7 +94,7 @@ def parse_args():
     )
     parser.add_argument(
         "--max-joint-step-deg",
-        type=float,
+
         default=None,
         help="Maximum per-step change for arm joints in degrees.",
     )
@@ -165,7 +165,7 @@ def resolve_artifacts(args) -> InferenceArtifacts:
         policy_path = remap_path(args.policy_path)
         if policy_path is None:
             raise ValueError("Policy path is required.")
-        candidate = policy_path / "train_config.json"
+        candidate = policy_path / "config.json"
         train_config_path = candidate if candidate.exists() else None
 
     if not policy_path.exists():
