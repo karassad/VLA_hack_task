@@ -46,7 +46,7 @@ class SimpleEnv:
         self.env = MuJoCoParserClass(name="Tabletop", rel_xml_path=xml_path)
         self.action_type = action_type
         self.state_type = state_type
-        # self.joy = JoystickController()
+        self.joy = JoystickController()
 
         # SO-101 arm joints used for IK/control
         self.arm_joint_names = [
@@ -388,8 +388,8 @@ class SimpleEnv:
         if self.env.is_key_pressed_once(key=glfw.KEY_Z):
             return np.zeros(6, dtype=np.float32), True
 
-        # action = self.joy.get_action()
-        # return np.array(action, dtype=np.float32), False
+        action = self.joy.get_action()
+        return np.array(action, dtype=np.float32), False
 
 
 

@@ -10,13 +10,13 @@
         - ${PWD}:/app
         - /tmp/.X11-unix:/tmp/.X11-unix:ro
       working_dir: /app
-      deploy:
-        resources:
-          reservations:
-            devices:
-              - driver: nvidia
-                count: all
-                capabilities: [gpu]
+      # deploy:
+      #   resources:
+      #     reservations:
+      #       devices:
+      #         - driver: nvidia
+      #           count: all
+      #           capabilities: [gpu]
       tty: true
       stdin_open: true
       # command: >
