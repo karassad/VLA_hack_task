@@ -1,0 +1,34 @@
+  services:
+    small_vla:
+      build: .
+      container_name: small_vla_image
+      environment:
+        - DISPLAY=${DISPLAY}
+        - QT_X11_NO_MINSHM=1
+      image: dpaleyev/lerobot-workshop:latest
+      volumes:
+        - ${PWD}:/app
+        - /tmp/.X11-unix:/tmp/.X11-unix:ro
+      working_dir: /app
+      deploy:
+        resources:
+          reservations:
+            devices:
+              - driver: nvidia
+                count: all
+                capabilities: [gpu]
+      tty: true
+      stdin_open: true
+      # command: >
+      #   python run_smolvla_inference.py
+      #   --checkpoint-step 100000
+      #   --train-run-dir /app/outputs/train/smolvla_so101_new
+      #   --dataset-root /app/simulation_data_fixed
+      #   --dataset-repo-id local/simulation_data_fixed
+      #   --episodes 10
+      #   --max-steps 250
+      #   --fps 10
+      #   --summary-path /app/outputs/eval/smolvla_so101_new_step100000.json
+
+
+        # python run_smolvla_inference.py --checkpoint-step 100000 --train-run-dir /app/outputs/train/smolvla_so101_new --dataset-root /app/simulation_data_fixed --dataset-repo-id local/record-test --episodes 10 --max-steps 250 --fps 10 --summary-path /app/outputs/eval/smolvla_so101_new_step100000.json

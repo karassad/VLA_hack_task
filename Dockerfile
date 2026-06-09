@@ -58,10 +58,14 @@ RUN pip install torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 \
         --index-url https://download.pytorch.org/whl/cu128 \
     && pip install -r requirements-docker.txt
 
+
+
 RUN python -c "import sys; print('python:', sys.version)" \
     && python -c "import torch; print('torch:', torch.__version__, 'cuda:', torch.cuda.is_available())" \
     && python -c "import lerobot; print('lerobot:', lerobot.__version__)" \
     && python -c "import mujoco; print('mujoco:', mujoco.__version__)"
+
+RUN apt-get update && apt-get install -y x11-xserver-utils
 
 COPY . .
 

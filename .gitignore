@@ -36,6 +36,7 @@ wandb/
 !asset.zip
 *.log
 _example_repo/
+error_log.txt
 
 # Generated assets
 asset/

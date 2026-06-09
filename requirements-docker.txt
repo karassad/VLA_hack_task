@@ -12,3 +12,5 @@ num2words
 lerobot[feetech,smolvla] @ git+https://github.com/huggingface/lerobot.git@main
 jupyter
 glfw
+av==12.3.0
+evdev
