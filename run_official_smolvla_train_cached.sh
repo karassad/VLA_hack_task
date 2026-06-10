@@ -38,7 +38,7 @@ docker_args=(
   -e HF_HOME=/root/.cache/huggingface
   -e HUGGINGFACE_HUB_CACHE=/root/.cache/huggingface/hub
   -e HF_DATASETS_CACHE=/root/.cache/huggingface/datasets
-  -e TRANSFORMERS_CACHE=/root/.cache/huggingface/transformers
+  -e TRANSFORMERS_CACE=/root/.cache/huggingface/transformers
   -v "$WORKSPACE_DIR:/app"
   -v "$HF_CACHE_DIR:/root/.cache/huggingface"
   -w /app
