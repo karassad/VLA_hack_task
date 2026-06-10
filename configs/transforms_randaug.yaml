@@ -1,0 +1,13 @@
+dataset:
+  image_transforms:
+    enable: True
+    max_num_transforms: 2
+    random_order: True
+    tfs:
+      randaug:
+        weight: 1
+        type: RandAugment
+        kwargs:
+          num_ops: 2
+          magnitude: 9
+          
