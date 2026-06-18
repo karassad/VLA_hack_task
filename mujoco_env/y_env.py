@@ -178,52 +178,116 @@ class SimpleEnv:
         self._apply_cube_half_extent(cube_half)
         self._randomize_cube_color(rng)
 
-        obj_names = self.env.get_body_names(prefix="body_obj_")
-        n_obj = len(obj_names)
+        # obj_names = self.env.get_body_names(prefix="body_obj_")
+        # n_obj = len(obj_names)
         # SO-101: база робота x≈0.06; min safe 2D distance from base = 0.20 m.
         # x∈[0.22, 0.38], y∈[-0.18, 0.18] → все объекты гарантированно
         # дальше ~16 см от базы по X и >20 см по 2D-норме.
         ROBOT_BASE_XY = np.array([0.06, 0.0])
         MIN_DIST_FROM_BASE = 0.20
         max_attempts = 200
-        for attempt in range(max_attempts):
-            obj_xyzs = sample_xyzs(
-                n_obj,
-                x_range=[0.22, 0.38],
-                y_range=[-0.18, 0.18],
-                z_range=[0.82, 0.82],
-                min_dist=0.14,
-                xy_margin=0.02,
-                rng=rng,
-            )
-            dists = np.linalg.norm(obj_xyzs[:, :2] - ROBOT_BASE_XY, axis=1)
-            if np.all(dists >= MIN_DIST_FROM_BASE):
-                break
-        else:
-            # fallback — просто используем последний сэмпл
-            pass
+        # for attempt in range(max_attempts):
+        #     obj_xyzs = sample_xyzs(
+        #         n_obj,
+        #         # x_range=[0.22, 0.38],
+        #         # y_range=[-0.18, 0.18],
+        #         # z_range=[0.82, 0.82],
+        #         # min_dist=0.14,
+        #         x_range=[0.22, 0.38],  # Разница = 0.08 (больше 0.04)
+        #         y_range=[-0.18, 0.18],
+        #         z_range=[0.82, 0.82],
+        #         min_dist=0.1,
+        #         xy_margin=0.02,
+        #         rng=rng,
+        #     )
+        #     dists = np.linalg.norm(obj_xyzs[:, :2] - ROBOT_BASE_XY, axis=1)
+        #     if np.all(dists >= MIN_DIST_FROM_BASE):
+        #         break
+        # else:
+        #     # fallback — просто используем последний сэмпл
+        #     pass
+        
+        # plate_name = "body_obj_plate_11"
+        # plate_pos = np.array([0.30, 0.0, 0.82]) # Центр рабочей зоны
+        # self.env.set_p_base_body(body_name=plate_name, p=plate_pos)
+        
+        # # 2. Теперь ставим кубик в радиусе 5-7 см от тарелки
+        # cube_name = "body_obj_cube"
+        # offset = rng.uniform(-0.06, 0.06, size=2)
+        # cube_pos = np.array([plate_pos[0] + offset[0], plate_pos[1] + offset[1], 0.82])
+        # self.env.set_p_base_body(body_name=cube_name, p=cube_pos)
 
-        for obj_idx in range(n_obj):
-            self.env.set_p_base_body(body_name=obj_names[obj_idx], p=obj_xyzs[obj_idx, :])
+        # for obj_idx in range(n_obj):
+        #     self.env.set_p_base_body(body_name=obj_names[obj_idx], p=obj_xyzs[obj_idx, :])
+        #     yaw = float(rng.uniform(0.0, 2.0 * np.pi))
+        #     self.env.set_R_base_body(
+        #         body_name=obj_names[obj_idx],
+        #         R=rpy2r(np.array([0.0, 0.0, yaw], dtype=np.float64)),
+        #     )
+
+        # self.env.forward(increase_tick=False)
+
+        # self.last_q = copy.deepcopy(q_zero)
+        # self.compute_q = copy.deepcopy(q_zero)
+        # self.q = q_full.astype(np.float32)
+
+        # self.p0, self.R0 = self.env.get_pR_body(body_name=self.ee_body_name)
+
+        # cube_init_pose, plate_init_pose = self.get_obj_pose()
+        # self.obj_init_pose = np.concatenate(
+        #     [cube_init_pose, plate_init_pose], dtype=np.float32
+        # )
+
+        # for _ in range(100):
+        #     self.step_env()
+
+        # self.gripper_state = False
+        # self.past_chars = []
+        # print("DONE INITIALIZATION")
+        
+        plate_name = "body_obj_plate_11"
+        cube_name = "body_obj_cube"
+        
+        plate_pos = np.array([0.30, 0.0, 0.82]) # Центр рабочей зоны
+        self.env.set_p_base_body(body_name=plate_name, p=plate_pos)
+        
+        while True:
+            offset = rng.uniform(-0.15, 0.15, size=2)
+            dist = np.linalg.norm(offset)
+            
+            # Условие 1: Минимальное расстояние (например, > 0.08)
+            # Условие 2: Кубик должен быть "дальше" от робота по оси X, чем центр тарелки
+            # (так как робот стоит при x < 0.30, дальняя часть тарелки имеет offset[0] > 0)
+            if dist > 0.12 and offset[0] > 0.06: 
+                break
+            
+            
+        cube_pos = np.array([plate_pos[0] + offset[0], plate_pos[1] + offset[1], 0.82])
+        self.env.set_p_base_body(body_name=cube_name, p=cube_pos)
+
+        # 2. Случайный поворот для тарелки и кубика
+        for name in [plate_name, cube_name]:
             yaw = float(rng.uniform(0.0, 2.0 * np.pi))
             self.env.set_R_base_body(
-                body_name=obj_names[obj_idx],
+                body_name=name,
                 R=rpy2r(np.array([0.0, 0.0, yaw], dtype=np.float64)),
             )
 
         self.env.forward(increase_tick=False)
 
+        # Инициализация состояний управления
         self.last_q = copy.deepcopy(q_zero)
         self.compute_q = copy.deepcopy(q_zero)
         self.q = q_full.astype(np.float32)
-
         self.p0, self.R0 = self.env.get_pR_body(body_name=self.ee_body_name)
 
+        # Запись начальных поз для обучения
         cube_init_pose, plate_init_pose = self.get_obj_pose()
         self.obj_init_pose = np.concatenate(
             [cube_init_pose, plate_init_pose], dtype=np.float32
         )
 
+        # "Прогрев" среды
         for _ in range(100):
             self.step_env()
 
