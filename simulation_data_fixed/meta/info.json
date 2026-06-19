@@ -125,7 +125,7 @@
         }
     },
     "total_episodes": 100,
-    "total_frames": 26192,
+    "total_frames": 24909,
     "total_tasks": 1,
     "chunks_size": 1000,
     "data_files_size_in_mb": 100,
