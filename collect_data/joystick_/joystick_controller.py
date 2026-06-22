@@ -8,6 +8,18 @@ class JoystickController:
                                    ):
         self.device = InputDevice(device_path)
         self.axes = {0: 128, 1: 128, 2: 128, 5: 128}
+        
+        self.center_axes = {0: 128, 1: 128, 2: 128, 5: 128}
+        # Читаем несколько раз, чтобы поймать текущее значение стиков
+        for _ in range(10):
+            try:
+                for event in self.device.read():
+                    if event.type == ecodes.EV_ABS:
+                        self.center_axes[event.code] = event.value
+            except BlockingIOError:
+                pass
+        print(f"Центр стиков установлен в: {self.center_axes}")
+        
         self.gripper_state = False
         self.wrist_roll_angle = 0.0
 
@@ -15,6 +27,7 @@ class JoystickController:
         wrist_step = 0.05
         self.wrist_roll_angle= 0.0
         try:
+            # print(."DEBUG: Axis 1 value is: {self.axes[1]}")
             for event in self.device.read():
                 if event.type == ecodes.EV_ABS:
                     self.axes[event.code] = event.value
@@ -29,7 +42,7 @@ class JoystickController:
         except BlockingIOError:
             pass
 
-        def norm(val, deadzone=10):
+        def norm(val, deadzone=30):
 
             diff = val - 128
             if abs(diff) < deadzone:
